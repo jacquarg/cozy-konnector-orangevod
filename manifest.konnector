@@ -3,25 +3,22 @@
   "name": "Orange VOD",
   "type": "node",
   "slug": "orange_vod",
-  "description": "This connector will download data from your Orange account on your Cozy. It will
-  automatically download the list of movies you downloaded in free (TV Replay) or paid VOD from
-  01/01/2015 (adult contents are not included). You will be able to use these data in different
-  apps in your Cozy.",
+  "description": "This connector will download data from your Orange account on your Cozy",
   "source": "git://github.com/cozy/cozy-konnector-orangevod.git",
   "fields": {
     "save_folder": {
       "doctype": "io.cozy.files",
-      "type": "folder",
+      "type": "folder"
     },
     "account": {
       "doctype": "io.cozy.accounts",
       "account_type": "orange",
-      "accountFormat": "access_token",
+      "accountFormat": "access_token"
     }
   },
   "locales": {
     "fr": {
-      "description": "Les données mises à disposition par Orange via ce connecteur contiennent la liste des films que vous avez visionnés  à partir du 01/01/2015 en VOD payante ou gratuite (Replay TV) à partir de votre Livebox (à l’exception des contenus « adulte »). Vous pourrez utiliser ces données dans différentes applications de votre Cozy",
+      "description": "Les données mises à disposition par Orange",
       "permissions": {
         "files": {
           "description": "Utilisé pour sauvegarder les factures"
