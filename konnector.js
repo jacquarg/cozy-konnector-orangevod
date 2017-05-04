@@ -1,6 +1,8 @@
 'use strict'
 
 const request = require('request')
+// require('request-debug')(request)
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
 
 // const localization = require('../lib/localization_manager')
 const {baseKonnector, updateOrCreate, models} = require('cozy-konnector-libs')
