@@ -5,16 +5,11 @@ const request = require('request')
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
 
 // const localization = require('../lib/localization_manager')
-const {baseKonnector, updateOrCreate, models} = require('cozy-konnector-libs')
+const {log, baseKonnector, updateOrCreate, models} = require('cozy-konnector-libs')
 
 const VideoStream = models.baseModel.createNew({name: 'io.cozy.videostream', displayName: 'videostream'})
 
 const API_ROOT = 'https://mesinfos.orange.fr'
-
-const logger = require('printit')({
-  prefix: 'Orange VOD',
-  date: true
-})
 
 /*
  * The goal of this connector is to fetch event from facebook and store them
@@ -51,7 +46,7 @@ const connector = module.exports = baseKonnector.createNew({
   fetchOperations: [
     checkToken,
     downloadVod,
-    updateOrCreate(logger, VideoStream, ['clientId', 'timestamp'])
+    updateOrCreate(null, VideoStream, ['clientId', 'timestamp'])
     // saveFieldsInKonnector,
     // buildNotifContent
   ]
@@ -73,22 +68,22 @@ function checkToken (requiredFields, entries, data, next) {
 
     next()
   } catch (e) {
-    connector.logger.error(`Unexpected token format: ${e}`)
+    log('error', `Unexpected token format: ${e}`)
     next('token not found')
   }
 }
 
 function requestOrange (uri, token, callback) {
-  connector.logger.info(uri)
+  log('info', uri)
 
   request.get(uri, { auth: { bearer: token }, json: true }, (err, res, body) => {
     if (err) {
-      connector.logger.error(`Download failed: ${err}`)
+      log('error', `Download failed: ${err}`)
       return callback(err)
     }
     if (res.statusCode.toString() !== '200') {
       err = `${res.statusCode} - ${res.statusMessage} ${err || ''}`
-      connector.logger.error(body)
+      log('error', body)
     }
 
     callback(null, body)
@@ -96,7 +91,7 @@ function requestOrange (uri, token, callback) {
 }
 
 function downloadVod (requiredFields, entries, data, next) {
-  connector.logger.info('Downloading vod data from Orange...')
+  log('info', 'Downloading vod data from Orange...')
   let uri = `${API_ROOT}/data/vod`
   if (requiredFields.lastVideoStream) {
     uri += `?start=${requiredFields.lastVideoStream.slice(0, 19)}`
