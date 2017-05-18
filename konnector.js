@@ -100,7 +100,7 @@ function downloadVod (requiredFields, entries, data, next) {
   requestOrange(uri, requiredFields.access_token, (err, body) => {
     if (err) { return next(err) }
     entries.videostreams = []
-    body.forEach((vod) => {
+    if (body.forEach) body.forEach((vod) => {
       if (vod.ts && requiredFields.lastVideoStream < vod.ts) {
         requiredFields.lastVideoStream = vod.ts
       }
