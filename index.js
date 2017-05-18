@@ -63352,6 +63352,8 @@ const connector = module.exports = baseKonnector.createNew({
 })
 
 function checkToken (requiredFields, entries, data, next) {
+  log('info', 'requiredFields')
+  log('info', requiredFields)
   const token = requiredFields.access_token
   if (!token) { return next('token not found') }
 
