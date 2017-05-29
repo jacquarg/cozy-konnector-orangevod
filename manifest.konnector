@@ -34,6 +34,10 @@
       "description": "Required to save the videos",
       "type": "io.cozy.files"
     },
+    "videostream": {
+      "description": "Import your VoD and replay watching log from Orange",
+      "type": "org.fing.mesinfos.videostream"
+    },
     "accounts": {
       "description": "Required to get the account's data",
       "type": "io.cozy.accounts",
