@@ -45,6 +45,12 @@ module.exports = {
         .then(account => {
           // get the folder path from the folder id and put it in cozyFields.folderPath
           return new Promise((resolve, reject) => {
+            // quick exit, if no folderPath field.
+            // avoid unecesary file right.
+            if (!cozyFields.folderPath) {
+              return resolve(account)
+            }
+
             cozy.files.statById(cozyFields.folderPath, false)
             .then(folder => {
               cozyFields.folderPath = folder.attributes.path
@@ -56,8 +62,8 @@ module.exports = {
         .then(account => {
           const requiredFields = Object.assign({
             folderPath: cozyFields.folderPath,
-            remember: account.remember,
             konnectorAccountId: cozyFields.account,
+            remember: account.remember,
           }, account.auth, account.oauth)
 
           konnector.fetchOperations.forEach(operation => {
@@ -68,10 +74,13 @@ module.exports = {
             if (err) {
               callback(err)
             } else {
+              if (!requiredFields.remember) { return callback(null, entries.notifContent) }
+
+              // else: save remember data in cozy.
               return cozy.data.updateAttributes('io.cozy.accounts', cozyFields.account, {
-                remember: requiredFields.remember
-              })
-              .then(() => callback(null, entries.notifContent))
+                  remember: requiredFields.remember
+                })
+                .then(() => callback(null, entries.notifContent))
             }
           })
         })
