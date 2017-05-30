@@ -5,9 +5,10 @@ const request = require('request')
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
 
 // const localization = require('../lib/localization_manager')
-const {log, baseKonnector, updateOrCreate, models} = require('cozy-konnector-libs')
+const {log, updateOrCreate, models} = require('cozy-konnector-libs')
+const baseKonnector = require('./base_konnector_with_remember')
 
-const VideoStream = models.baseModel.createNew({name: 'io.cozy.videostream', displayName: 'videostream'})
+const VideoStream = models.baseModel.createNew({name: 'org.fing.mesinfos.videostream', displayName: 'videostream'})
 
 const API_ROOT = 'https://mesinfos.orange.fr'
 
@@ -16,8 +17,8 @@ const API_ROOT = 'https://mesinfos.orange.fr'
  * in the Cozy
  */
 const connector = module.exports = baseKonnector.createNew({
-  name: 'Orange VOD',
-  customView: '<%t konnector customview orange_vod %>',
+  name: 'Orange Livebox',
+  customView: '<%t konnector customview orange_livebox %>',
 
   connectUrl: 'https://mesinfos.orange.fr/auth?redirect_url=',
   category: 'isp',
@@ -35,23 +36,25 @@ const connector = module.exports = baseKonnector.createNew({
     },
     access_token: {
       type: 'hidden'
-    },
-    lastVideoStream: {
-      type: 'hidden'
     }
   },
   dataType: ['videostream'],
   models: [VideoStream],
 
   fetchOperations: [
+    initProperties,
     checkToken,
     downloadVod,
     updateOrCreate(null, VideoStream, ['clientId', 'timestamp'])
-    // saveFieldsInKonnector,
     // buildNotifContent
   ]
 
 })
+
+function initProperties (requiredFields, entries, data, next) {
+  requiredFields.remember = requiredFields.remember || {}
+  next()
+}
 
 function checkToken (requiredFields, entries, data, next) {
   log('info', 'requiredFields')
@@ -60,13 +63,13 @@ function checkToken (requiredFields, entries, data, next) {
   if (!token) { return next('token not found') }
 
   try {
-    // let payload = token.split('.')[1]
-    // payload = JSON.parse(new Buffer(payload, 'base64').toString())
+    let payload = token.split('.')[1]
+    payload = JSON.parse(new Buffer(payload, 'base64').toString())
 
-    // if (payload.token_type !== 'fixe') {
-    //   connector.logger.error(`Wronk token_type for this konnector: ${payload.token_type}`)
-    //   return next('not fixe token')
-    // }
+    if (payload.token_type !== 'fixe') {
+      log('error', `Wronk token_type for this konnector: ${payload.token_type}`)
+    // TODO: stub:  return next('not fixe token')
+    }
 
     next()
   } catch (e) {
@@ -75,37 +78,22 @@ function checkToken (requiredFields, entries, data, next) {
   }
 }
 
-function requestOrange (uri, token, callback) {
-  log('info', uri)
-
-  request.get(uri, { auth: { bearer: token }, json: true }, (err, res, body) => {
-    if (err) {
-      log('error', `Download failed: ${err}`)
-      return callback(err)
-    }
-    if (res.statusCode.toString() !== '200') {
-      err = `${res.statusCode} - ${res.statusMessage} ${err || ''}`
-      log('error', body)
-    }
-
-    callback(null, body)
-  })
-}
 
 function downloadVod (requiredFields, entries, data, next) {
   log('info', 'Downloading vod data from Orange...')
   let uri = `${API_ROOT}/data/vod`
-  if (requiredFields.lastVideoStream) {
-    uri += `?start=${requiredFields.lastVideoStream.slice(0, 19)}`
+  if (requiredFields.remember.lastVideoStream) {
+    uri += `?start=${requiredFields.remember.lastVideoStream.slice(0, 19)}`
   }
-
   requestOrange(uri, requiredFields.access_token, (err, body) => {
     if (err) { return next(err) }
     entries.videostreams = []
     if (body.forEach) body.forEach((vod) => {
-      if (vod.ts && requiredFields.lastVideoStream < vod.ts) {
-        requiredFields.lastVideoStream = vod.ts
+      if (vod.ts && (!requiredFields.remember.lastVideoStream
+        || requiredFields.remember.lastVideoStream < vod.ts)) {
+        requiredFields.remember.lastVideoStream = vod.ts
       }
+
       if (vod.err) { return }
 
       entries.videostreams.push({
@@ -140,34 +128,30 @@ function downloadVod (requiredFields, entries, data, next) {
         clientId: vod.line_id
       })
     })
-
     next()
   })
 }
 
-// // Save konnector's fieldValues during fetch process.
-// function saveFieldsInKonnector (requiredFields, entries, data, next) {
-//   connector.logger.info('saveFieldsInKonnector')
+// // // // //
+// Helpers //
 
-//   // Disable eslint because we can't require models/konnector at the top
-//   // of this file (or Konnector will be empty). It's because in the require
-//   // tree of models/konnector, there is the current file.
-//   //eslint-disable-next-line
-//   const Konnector = require('../models/konnector');
+function requestOrange (uri, token, callback) {
+  log('info', uri)
 
-//   Konnector.get(connector.slug, (err, konnector) => {
-//     if (err) {
-//       connector.logger.error(err)
-//       return next('internal error')
-//     }
+  request.get(uri, { auth: { bearer: token }, json: true }, (err, res, body) => {
+    if (err) {
+      log('error', `Download failed: ${err}`)
+      return callback(err)
+    }
+    if (res.statusCode.toString() !== '200') {
+      err = `${res.statusCode} - ${res.statusMessage} ${err || ''}`
+      log('error', body)
+    }
 
-//     const accounts = konnector.accounts
-//     const index = accounts.findIndex(account =>
-//         account.access_token === requiredFields.access_token)
-//     accounts[index] = requiredFields
-//     konnector.updateFieldValues({ accounts }, next)
-//   })
-// }
+    callback(null, body)
+  })
+}
+
 
 // function buildNotifContent (requiredFields, entries, data, next) {
 //   // data.updated: we don't sepak about update, beacause we don't now if the
