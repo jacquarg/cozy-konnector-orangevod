@@ -63736,7 +63736,7 @@ function checkToken (requiredFields, entries, data, next) {
     log('info', payload)
 
     if (payload.token_type !== 'fixe') {
-      // log('error', `Wronk token_type for this konnector: ${payload.token_type}`)
+      log('warning', `Wronk token_type for this konnector: ${payload.token_type}`)
     // TODO: stub:  return next('not fixe token')
     }
 
