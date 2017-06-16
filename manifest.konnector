@@ -30,7 +30,7 @@
     "accounts": {
       "description": "Required to get the account's data",
       "type": "io.cozy.accounts",
-      "verbs": ["GET"]
+      "verbs": ["GET", "PUT"]
     }
   },
   "developer": {
