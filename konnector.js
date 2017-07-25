@@ -8,7 +8,7 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
 const {log, updateOrCreate, models} = require('cozy-konnector-libs')
 const baseKonnector = require('./base_konnector_with_remember')
 
-const VideoStream = models.baseModel.createNew({name: 'org.fing.mesinfos.videostream', displayName: 'videostream'})
+const VideoStream = models.baseModel.createNew({name: 'fr.orange.videostream', displayName: 'videostream'})
 
 const API_ROOT = 'https://mesinfos.orange.fr'
 
@@ -20,23 +20,24 @@ const connector = module.exports = baseKonnector.createNew({
   name: 'Orange Livebox',
   customView: '<%t konnector customview orange_livebox %>',
 
-  connectUrl: 'https://mesinfos.orange.fr/auth?redirect_url=',
-  category: 'isp',
-  color: {
-    hex: '#FF6600',
-    css: '#FF6600'
-  },
+  // TODO : deprecated ?
+  // connectUrl: 'https://mesinfos.orange.fr/auth?redirect_url=',
+  // category: 'isp',
+  // color: {
+  //   hex: '#FF6600',
+  //   css: '#FF6600'
+  // },
 
-  fields: {
-    frequency: {
-      type: 'dropdown',
-      default: 'weekly',
-      advanced: true,
-      options: ['hourly', 'daily', 'weekly', 'monthly']
-    },
-    access_token: {
-      type: 'hidden'
-    }
+  // fields: {
+  //   frequency: {
+  //     type: 'dropdown',
+  //     default: 'weekly',
+  //     advanced: true,
+  //     options: ['hourly', 'daily', 'weekly', 'monthly']
+  //   },
+    // access_token: {
+    //   type: 'hidden'
+    // }
   },
   dataType: ['videostream'],
   models: [VideoStream],
