@@ -8,8 +8,9 @@
   "fields": {
     "account": {
       "doctype": "io.cozy.accounts",
-      "account_type": "orange",
-      "accountFormat": "access_token"
+      "account_type": "orangelivebox",
+      "accountFormat": "access_token",
+      "scope": "I"
     }
   },
   "locales": {
